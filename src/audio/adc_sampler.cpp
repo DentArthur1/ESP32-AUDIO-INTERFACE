@@ -1,7 +1,5 @@
 #include "adc_sampler.h"
 
-//ADC
-
 // Inizializza l'adc
 adc_continuous_handle_t initialize_adc() {
     adc_continuous_handle_t handle = NULL;
@@ -58,7 +56,7 @@ bool read_raw_from_adc(adc_continuous_handle_t handle, uint8_t *buffer, size_t b
 
 // Funzione per calcolare la tensione a partire dal valore grezzo ADC Dout
 float convert_raw_to_voltage(uint16_t Dout) {
-    return ((Dout * VMAX) / DMAX) -  MIC_BIAS; ;  // Formula Vout = Dout * Vmax / Dmax
+    return ((Dout * VMAX) / DMAX); ;  // Formula Vout = Dout * Vmax / Dmax
 }
 
 // Funzione per mappare correttamente il valore di tensione in PCM
@@ -95,7 +93,7 @@ void read_and_convert_to_pcm(adc_continuous_handle_t handle, int16_t *pcm_buffer
         float voltage = convert_raw_to_voltage(Dout);
 
         // Converti la tensione in valore PCM
-        pcm_buffer[i] = convert_voltage_to_pcm(voltage);
+        pcm_buffer[i] = convert_voltage_to_pcm(voltage) / VOLUME_DIVIDER;
     }
 }
 
