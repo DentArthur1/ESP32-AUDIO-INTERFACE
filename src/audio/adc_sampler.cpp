@@ -53,46 +53,56 @@ bool start_adc(adc_continuous_handle_t handle){
 
 // Legge un array di campioni grezzi dall'ADC
 bool read_raw_from_adc(adc_continuous_handle_t handle, uint8_t *buffer, size_t buffer_size_bytes, uint32_t *bytes_letti){
-    return adc_continuous_read(handle, buffer, buffer_size_bytes, bytes_letti, 1000) == ESP_OK;
+    return adc_continuous_read(handle, buffer, buffer_size_bytes, bytes_letti, ADC_MAX_DELAY) == ESP_OK;
 }
 
 // Funzione per calcolare la tensione a partire dal valore grezzo ADC Dout
-float convert_raw_to_voltage(uint8_t Dout) {
+float convert_raw_to_voltage(uint16_t Dout) {
     return (Dout * VMAX) / DMAX;  // Formula Vout = Dout * Vmax / Dmax
 }
 
-// Funzione per mappare il valore di tensione in PCM
+// Funzione per mappare correttamente il valore di tensione in PCM
 int16_t convert_voltage_to_pcm(float voltage) {
-    // Mappatura della tensione in un valore PCM a 16 bit (da -32768 a 32767)
-    int16_t pcm_value = (int16_t)((voltage / VMAX) * PCM_MAX_VALUE);
+    // Centra la tensione rispetto a VMAX/2 per ottenere valori positivi e negativi
+    float centered_voltage = voltage - (VMAX / 2);
 
+    // Mappa il valore centrato a PCM 16 bit (-32768 a 32767)
+    int16_t pcm_value = (int16_t)((centered_voltage / (VMAX / 2)) * PCM_MAX_VALUE);
+
+    // Limita ai valori PCM massimo e minimo
     if (pcm_value > PCM_MAX_VALUE) pcm_value = PCM_MAX_VALUE;
     if (pcm_value < PCM_MIN_VALUE) pcm_value = PCM_MIN_VALUE;
     return pcm_value;
 }
 
 // Funzione per leggere un array di campioni grezzi dall'ADC e convertirli in PCM
-void read_and_convert_to_pcm(adc_continuous_handle_t handle, int16_t *pcm_buffer, size_t buffer_size) {
-    uint8_t raw_buffer[buffer_size];  // Buffer per i campioni grezzi
+void read_and_convert_to_pcm(adc_continuous_handle_t handle, int16_t *pcm_buffer, size_t buffer_len) {
+    uint8_t raw_buffer[buffer_len * 2];  // Buffer per i campioni grezzi (2 byte per campione a 12 bit)
     uint32_t bytes_letti = 0;
 
     // Leggi i dati grezzi dall'ADC
-    if (!read_raw_from_adc(handle, raw_buffer, buffer_size, &bytes_letti)) {
+    if (!read_raw_from_adc(handle, raw_buffer, sizeof(raw_buffer), &bytes_letti)) {
         Serial.println("Errore nella lettura dell'ADC!");
         return;
     }
 
-    // Converti i dati grezzi in PCM e riempi il buffer PCM
-    for (size_t i = 0; i < buffer_size; i++) {
-        float voltage = convert_raw_to_voltage(raw_buffer[i]);  // Converti il valore grezzo in tensione
-        pcm_buffer[i] = convert_voltage_to_pcm(voltage);  // Converti la tensione in valore PCM
+    // Converti i dati grezzi a 12 bit e riempi il buffer PCM
+    for (size_t i = 0; i < buffer_len; i++) {
+        // Ricostruzione del campione a 12 bit (2 byte)
+        uint16_t Dout = ((raw_buffer[i * 2 + 1] << 8) | raw_buffer[i * 2]) & 0xFFF;
+
+        // Converti il valore grezzo in tensione
+        float voltage = convert_raw_to_voltage(Dout);
+
+        // Converti la tensione in valore PCM
+        pcm_buffer[i] = convert_voltage_to_pcm(voltage);
     }
 }
 
 // Funzione per il debug dei dati PCM
-void preview_pcm(int16_t *pcm_buffer, size_t buffer_size, size_t first_n_elements) {
+void preview_pcm(int16_t *pcm_buffer, size_t buffer_len, size_t first_n_elements) {
     Serial.println("PCM DATA:");
-    size_t num_elements = (first_n_elements < buffer_size) ? first_n_elements : buffer_size;
+    size_t num_elements = (first_n_elements < buffer_len) ? first_n_elements : buffer_len;
     for (size_t i = 0; i < num_elements; i++) {
         Serial.printf("PCM[%d] = %hd\n", i, pcm_buffer[i]);
     }
