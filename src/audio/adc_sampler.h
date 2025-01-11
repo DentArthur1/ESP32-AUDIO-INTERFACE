@@ -19,6 +19,7 @@
 
 adc_continuous_handle_t initialize_adc();
 bool start_adc(adc_continuous_handle_t handle);
+void stop_adc(adc_continuous_handle_t handle);
 bool read_raw_from_adc(adc_continuous_handle_t handle, uint8_t *buffer, size_t buffer_size_bytes, uint32_t *bytes_letti);
 float convert_raw_to_voltage(uint16_t Dout);
 int16_t convert_voltage_to_pcm(float voltage);

@@ -9,9 +9,8 @@ void setup() {
     //ADC
     my_adc_handle = initialize_adc();
     start_adc(my_adc_handle);
-    //I2S
-    my_i2s_handle = initialize_i2s_output();
-    start_i2s_output(my_i2s_handle);
+
+
 }
 
 void loop() {
@@ -20,8 +19,9 @@ void loop() {
     // Riempi il buffer con i dati PCM
     read_and_convert_to_pcm(my_adc_handle, pcm_buffer, BUFFER_SIZE);
     // Per il debug, visualizza i primi 10 campioni PCM
-    //preview_pcm(pcm_buffer, BUFFER_SIZE, 10);
+    preview_pcm(pcm_buffer, BUFFER_SIZE, 10);
     //Scrivo i dati sulla periferica I2S
-    write_pcm(pcm_buffer, BUFFER_SIZE, my_i2s_handle);
+    //write_pcm(pcm_buffer, BUFFER_SIZE, my_i2s_handle);
+    delay(1000);
 }
 

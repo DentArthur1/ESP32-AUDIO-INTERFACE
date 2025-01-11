@@ -40,6 +40,17 @@ void start_i2s_output(i2s_chan_handle_t my_handle){
     Serial.println("I2S OUTPUT inizializzato correttamente");
 }
 
+void stop_i2s_output(i2s_chan_handle_t tx_handle) {
+    // Disabilita il canale
+    ESP_ERROR_CHECK(i2s_channel_disable(tx_handle));
+    Serial.println("I2S OUTPUT disabilitato correttamente");
+
+    // Cancella il canale e libera le risorse
+    ESP_ERROR_CHECK(i2s_del_channel(tx_handle));
+    Serial.println("I2S OUTPUT canale eliminato e risorse liberate");
+}
+
+
 size_t write_pcm(int16_t *pcm_data, int pcm_data_len, i2s_chan_handle_t tx_handle){
     size_t bytes_written;
     // Scrivere i dati PCM nel buffer I2S

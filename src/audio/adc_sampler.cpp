@@ -49,6 +49,25 @@ bool start_adc(adc_continuous_handle_t handle){
     }
 }
 
+void stop_adc(adc_continuous_handle_t handle) {
+    // Ferma l'acquisizione continua
+    esp_err_t result = adc_continuous_stop(handle);
+    if (result == ESP_OK) {
+        Serial.println("ADC acquisizione fermata correttamente");
+    } else {
+        Serial.println("Errore durante l'arresto dell'acquisizione ADC");
+    }
+
+    // Cancella l'handle e libera le risorse
+    result = adc_continuous_deinit(handle);
+    if (result == ESP_OK) {
+        Serial.println("ADC handle deinizializzato correttamente");
+    } else {
+        Serial.println("Errore durante la deinizializzazione dell'ADC");
+    }
+}
+
+
 // Legge un array di campioni grezzi dall'ADC
 bool read_raw_from_adc(adc_continuous_handle_t handle, uint8_t *buffer, size_t buffer_size_bytes, uint32_t *bytes_letti){
     return adc_continuous_read(handle, buffer, buffer_size_bytes, bytes_letti, ADC_MAX_DELAY) == ESP_OK;

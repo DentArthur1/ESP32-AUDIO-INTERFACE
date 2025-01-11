@@ -11,3 +11,4 @@
 i2s_chan_handle_t initialize_i2s_output();
 void start_i2s_output(i2s_chan_handle_t my_handle);
 size_t write_pcm(int16_t *pcm_data, int pcm_data_len, i2s_chan_handle_t tx_handle);
+void stop_i2s_output(i2s_chan_handle_t tx_handle);
